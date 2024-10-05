@@ -1,0 +1,18 @@
+version: 0.2
+phases:
+  pre-build:
+    commands:
+      - echo "Logging in to AWS ECR..."
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 050451400272.dkr.ecr.ap-south-1.amazonaws.com 
+  build:
+    commands:
+      - echo "Building the Docker image..."
+      - docker build -t nestjs-aws-ecs-deploy-ecr .
+      - docker tag nestjs-aws-ecs-deploy-ecr:latest 050451400272.dkr.ecr.ap-south-1.amazonaws.com/nestjs-aws-ecs-deploy-ecr:latest
+      - printf '[{"name":"nestjs-aws-ecs-deploy-ecr","imageUri":"%s"}]' 050451400272.dkr.ecr.ap-south-1.amazonaws.com/nestjs-aws-ecs-deploy-ecr:latest > nestjs-aws-ecs-deploy-ecr.json
+  post_build:
+    commands:
+      - echo "Pushing the Docker image to ECR..."
+      - docker push 050451400272.dkr.ecr.ap-south-1.amazonaws.com/nestjs-aws-ecs-deploy-ecr:latest
+artifacts:
+    files: nestjs-aws-ecs-deploy-ecr.json
